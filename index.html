@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Instagram</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%23f9ce34'/%3E%3Cstop offset='.5' stop-color='%23ee2a7b'/%3E%3Cstop offset='1' stop-color='%236228d7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='24' height='24' rx='6' fill='url(%23g)'/%3E%3Crect x='4' y='4' width='16' height='16' rx='4' fill='none' stroke='white' stroke-width='2'/%3E%3Ccircle cx='12' cy='12' r='3.5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Pages switch with links (#home, #explore, #profile, #login).
+       Likes, saves, follows, and tabs use checkboxes styled in CSS. -->
+  <input class="ghost" type="checkbox" id="create-open" aria-label="Create">
+
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24">
+      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-home-fill" viewBox="0 0 24 24">
+      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="m20 20-3.2-3.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <polygon points="16.2,7.8 10.2,10.2 7.8,16.2 13.8,13.8" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-compass-fill" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="currentColor"/>
+      <polygon points="16.2,7.8 10.2,10.2 7.8,16.2 13.8,13.8" fill="#fff"/>
+    </symbol>
+    <symbol id="i-reels" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M10 9.2v5.6l5-2.8-5-2.8z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-reels-fill" viewBox="0 0 24 24">
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5" fill="currentColor"/>
+      <path d="M10 9.2v5.6l5-2.8-5-2.8z" fill="#fff"/>
+    </symbol>
+    <symbol id="i-send" viewBox="0 0 24 24">
+      <path d="m22 2-7 20-4-9-9-4L22 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M22 2 11 13" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+    <symbol id="i-send-fill" viewBox="0 0 24 24">
+      <path d="m22 2-7 20-4-9-9-4L22 2z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24">
+      <path d="M12 20.5s-7.2-4.6-7.2-9.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-heart-fill" viewBox="0 0 24 24">
+      <path d="M12 20.5s-7.2-4.6-7.2-9.2A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7.2 3.3c0 4.6-7.2 9.2-7.2 9.2z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M12 8v8M8 12h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24">
+      <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-comment" viewBox="0 0 24 24">
+      <path d="M20 11.5a8 8 0 0 1-8 8H7.2L4 22V11.5a8 8 0 1 1 16 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24">
+      <path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-3.5L5 21V4.5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-bookmark-fill" viewBox="0 0 24 24">
+      <path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-3.5L5 21V4.5a1 1 0 0 1 1-1z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24">
+      <circle cx="6" cy="12" r="1.35" fill="currentColor"/>
+      <circle cx="12" cy="12" r="1.35" fill="currentColor"/>
+      <circle cx="18" cy="12" r="1.35" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="M6 6 18 18M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24">
+      <path d="m10 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24">
+      <path d="m14 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-badge" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" fill="#0095f6"/>
+      <path d="m7.5 12.5 3 3 6-6.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-emoji" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+      <path d="M8 14.2c1.2 1.4 2.4 2 4 2s2.8-.6 4-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="9" cy="10" r="1" fill="currentColor"/>
+      <circle cx="15" cy="10" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="17.2" cy="6.8" r="1" fill="currentColor"/>
+    </symbol>
+  </svg>
+
+  <h1 class="vh">Instagram</h1>
+
+  <div class="app">
+    <header class="mobile-top">
+      <a href="#home" class="logo-word">Instagram</a>
+      <span class="mobile-actions">
+        <a class="icon-btn" href="#notifications" aria-label="Notifications"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg></a>
+        <a class="icon-btn" href="#messages" aria-label="Messages"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></a>
+      </span>
+    </header>
+
+    <aside class="sidebar">
+      <a class="logo" href="#home" aria-label="Instagram home">
+        <svg class="ico logo-mark" aria-hidden="true"><use href="#i-camera"/></svg>
+        <span class="logo-word">Instagram</span>
+      </a>
+
+      <a class="nav-item nav-home" href="#home" aria-label="Home">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-home-fill"/></svg></span>
+        <span class="nav-label">Home</span>
+      </a>
+      <a class="nav-item nav-search" href="#search" aria-label="Search">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-search"/></svg></span>
+        <span class="nav-label">Search</span>
+      </a>
+      <a class="nav-item nav-explore" href="#explore" aria-label="Explore">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-compass-fill"/></svg></span>
+        <span class="nav-label">Explore</span>
+      </a>
+      <a class="nav-item nav-reels" href="#reels" aria-label="Reels">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-reels"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-reels-fill"/></svg></span>
+        <span class="nav-label">Reels</span>
+      </a>
+      <a class="nav-item nav-messages" href="#messages" aria-label="Messages">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-send-fill"/></svg></span>
+        <span class="nav-label">Messages</span>
+      </a>
+      <a class="nav-item nav-notifications" href="#notifications" aria-label="Notifications">
+        <span class="icon-outline"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg></span>
+        <span class="icon-filled"><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg></span>
+        <span class="nav-label">Notifications</span>
+        <span class="note-dot" aria-hidden="true"></span>
+      </a>
+      <label class="nav-item nav-create" for="create-open">
+        <svg class="ico" aria-hidden="true"><use href="#i-plus"/></svg>
+        <span class="nav-label">Create</span>
+      </label>
+      <a class="nav-item nav-profile" href="#profile" aria-label="Profile">
+        <span class="av av-xs av-alex nav-av">A</span>
+        <span class="nav-label">Profile</span>
+      </a>
+
+      <div class="more-wrap">
+        <button class="nav-item" type="button" aria-haspopup="true">
+          <svg class="ico" aria-hidden="true"><use href="#i-menu"/></svg>
+          <span class="nav-label">More</span>
+        </button>
+        <div class="more-menu">
+          <a href="#profile"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>Saved</a>
+          <a href="#notifications"><svg class="ico" aria-hidden="true"><use href="#i-heart"/></svg>Notifications</a>
+          <a class="logout" href="#login">Log out</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <div class="layout">
+        <div class="center">
+
+          <section id="home" class="view">
+            <h2 class="vh">Home</h2>
+            <div class="stories">
+              <a class="story" href="#profile">
+                <span class="your-story">
+                  <span class="ring"><span class="av av-lg av-alex">A</span></span>
+                  <span class="add-badge" aria-hidden="true"></span>
+                </span>
+                <span class="story-name">Your story</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring fresh"><span class="av av-lg av-maya">M</span></span>
+                <span class="story-name">maya.codes</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring fresh"><span class="av av-lg av-sam">S</span></span>
+                <span class="story-name">travel.with.sam</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring fresh"><span class="av av-lg av-lina">L</span></span>
+                <span class="story-name">lina.eats</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring fresh"><span class="av av-lg av-noah">N</span></span>
+                <span class="story-name">noah.frames</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring"><span class="av av-lg av-jordan">J</span></span>
+                <span class="story-name">jordan.pix</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring fresh"><span class="av av-lg av-priya">P</span></span>
+                <span class="story-name">priya.nair</span>
+              </a>
+              <a class="story" href="#explore">
+                <span class="ring"><span class="av av-lg av-riley">R</span></span>
+                <span class="story-name">riley.day</span>
+              </a>
+            </div>
+
+            <article class="post">
+              <input class="ghost like-toggle" type="checkbox" id="like-1" aria-label="Like post by maya.codes">
+              <input class="ghost save-toggle" type="checkbox" id="save-1" aria-label="Save post by maya.codes">
+              <div class="post-body">
+                <header class="post-head">
+                  <a href="#profile"><span class="ring fresh"><span class="av av-sm av-maya">M</span></span></a>
+                  <a class="who" href="#profile"><strong>maya.codes</strong><span class="loc">Blue Cove</span></a>
+                  <details class="post-more">
+                    <summary aria-label="More options"><svg class="ico" aria-hidden="true"><use href="#i-dots"/></svg></summary>
+                    <div class="post-menu">
+                      <a href="#profile">About this account</a>
+                      <span>Copy link</span>
+                      <span>Unfollow</span>
+                    </div>
+                  </details>
+                </header>
+                <div class="media">
+                  <label class="like-hit" for="like-1" aria-label="Like this photo">
+                    <span class="shot shot-beach" role="img" aria-label="Sunset over the water at Blue Cove"></span>
+                  </label>
+                  <div class="big-heart" aria-hidden="true"><svg class="ico"><use href="#i-heart-fill"/></svg></div>
+                </div>
+                <div class="actions">
+                  <label class="icon-btn heart" for="like-1" aria-label="Like">
+                    <svg class="ico heart-outline" aria-hidden="true"><use href="#i-heart"/></svg>
+                    <svg class="ico heart-fill" aria-hidden="true"><use href="#i-heart-fill"/></svg>
+                  </label>
+                  <label class="icon-btn" for="cmt-1" aria-label="Comment"><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg></label>
+                  <button class="icon-btn" type="button" aria-label="Share"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  <span class="spacer"></span>
+                  <label class="icon-btn" for="save-1" aria-label="Save">
+                    <svg class="ico save-outline" aria-hidden="true"><use href="#i-bookmark"/></svg>
+                    <svg class="ico save-fill" aria-hidden="true"><use href="#i-bookmark-fill"/></svg>
+                  </label>
+                </div>
+                <div class="meta">
+                  <p class="likes"><span class="count-off">1,284</span><span class="count-on">1,285</span> likes</p>
+                  <p class="caption"><a href="#profile"><strong>maya.codes</strong></a> Morning light on the lab week trip. We stayed until the water turned gold. <a class="tag" href="#explore">#webprogramming</a> <a class="tag" href="#explore">#campus</a></p>
+                  <details class="all-comments">
+                    <summary>View all 18 comments</summary>
+                    <p><a href="#profile"><strong>noah.frames</strong></a> That horizon line is perfect.</p>
+                    <p><a href="#profile"><strong>lina.eats</strong></a> Saving this spot for Sunday.</p>
+                  </details>
+                  <time datetime="2026-10-06">2 hours ago</time>
+                  <div class="add-comment">
+                    <input class="comment-input" id="cmt-1" type="text" placeholder="Add a comment…" aria-label="Add a comment">
+                    <svg class="ico" aria-hidden="true"><use href="#i-emoji"/></svg>
+                    <span class="post-btn">Post</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="post">
+              <input class="ghost like-toggle" type="checkbox" id="like-2" aria-label="Like post by lina.eats">
+              <input class="ghost save-toggle" type="checkbox" id="save-2" aria-label="Save post by lina.eats">
+              <div class="post-body">
+                <header class="post-head">
+                  <a href="#profile"><span class="ring fresh"><span class="av av-sm av-lina">L</span></span></a>
+                  <a class="who" href="#profile"><strong>lina.eats</strong><span class="loc">Sunday kitchen</span></a>
+                  <details class="post-more">
+                    <summary aria-label="More options"><svg class="ico" aria-hidden="true"><use href="#i-dots"/></svg></summary>
+                    <div class="post-menu">
+                      <a href="#profile">About this account</a>
+                      <span>Copy link</span>
+                      <span>Unfollow</span>
+                    </div>
+                  </details>
+                </header>
+                <div class="media sq">
+                  <div class="carousel">
+                    <input class="ghost" type="radio" name="car1" id="car1-a" checked>
+                    <input class="ghost" type="radio" name="car1" id="car1-b">
+                    <label class="like-hit" for="like-2" aria-label="Like this photo">
+                      <span class="slides">
+                        <span class="slide s1"><span class="shot shot-pasta" role="img" aria-label="A plate of pasta"></span></span>
+                        <span class="slide s2"><span class="shot shot-bowl" role="img" aria-label="A fresh salad bowl"></span></span>
+                      </span>
+                    </label>
+                    <label class="arrow next" for="car1-b" aria-label="Next photo"><svg class="ico" aria-hidden="true"><use href="#i-chevron"/></svg></label>
+                    <label class="arrow prev" for="car1-a" aria-label="Previous photo"><svg class="ico" aria-hidden="true"><use href="#i-chevron-left"/></svg></label>
+                    <span class="dots">
+                      <label for="car1-a" aria-label="Photo 1"></label>
+                      <label for="car1-b" aria-label="Photo 2"></label>
+                    </span>
+                  </div>
+                  <div class="big-heart" aria-hidden="true"><svg class="ico"><use href="#i-heart-fill"/></svg></div>
+                </div>
+                <div class="actions">
+                  <label class="icon-btn heart" for="like-2" aria-label="Like">
+                    <svg class="ico heart-outline" aria-hidden="true"><use href="#i-heart"/></svg>
+                    <svg class="ico heart-fill" aria-hidden="true"><use href="#i-heart-fill"/></svg>
+                  </label>
+                  <label class="icon-btn" for="cmt-2" aria-label="Comment"><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg></label>
+                  <button class="icon-btn" type="button" aria-label="Share"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  <span class="spacer"></span>
+                  <label class="icon-btn" for="save-2" aria-label="Save">
+                    <svg class="ico save-outline" aria-hidden="true"><use href="#i-bookmark"/></svg>
+                    <svg class="ico save-fill" aria-hidden="true"><use href="#i-bookmark-fill"/></svg>
+                  </label>
+                </div>
+                <div class="meta">
+                  <p class="likes"><span class="count-off">862</span><span class="count-on">863</span> likes</p>
+                  <p class="caption"><a href="#profile"><strong>lina.eats</strong></a> Two plates, one afternoon. Pasta first, greens second. <a class="tag" href="#explore">#homecooking</a></p>
+                  <details class="all-comments">
+                    <summary>View all 9 comments</summary>
+                    <p><a href="#profile"><strong>priya.nair</strong></a> Recipe when?</p>
+                    <p><a href="#profile"><strong>alex.studio</strong></a> Bringing this energy to the lab potluck.</p>
+                  </details>
+                  <time datetime="2026-10-05">5 hours ago</time>
+                  <div class="add-comment">
+                    <input class="comment-input" id="cmt-2" type="text" placeholder="Add a comment…" aria-label="Add a comment">
+                    <svg class="ico" aria-hidden="true"><use href="#i-emoji"/></svg>
+                    <span class="post-btn">Post</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="post">
+              <input class="ghost like-toggle" type="checkbox" id="like-3" aria-label="Like post by noah.frames">
+              <input class="ghost save-toggle" type="checkbox" id="save-3" aria-label="Save post by noah.frames">
+              <div class="post-body">
+                <header class="post-head">
+                  <a href="#profile"><span class="ring fresh"><span class="av av-sm av-noah">N</span></span></a>
+                  <a class="who" href="#profile"><strong>noah.frames</strong><span class="loc">Ridge Trail</span></a>
+                  <details class="post-more">
+                    <summary aria-label="More options"><svg class="ico" aria-hidden="true"><use href="#i-dots"/></svg></summary>
+                    <div class="post-menu">
+                      <a href="#profile">About this account</a>
+                      <span>Copy link</span>
+                      <span>Unfollow</span>
+                    </div>
+                  </details>
+                </header>
+                <div class="media">
+                  <label class="like-hit" for="like-3" aria-label="Like this photo">
+                    <span class="shot shot-peaks" role="img" aria-label="Layered mountains under a clear sky"></span>
+                  </label>
+                  <div class="big-heart" aria-hidden="true"><svg class="ico"><use href="#i-heart-fill"/></svg></div>
+                </div>
+                <div class="actions">
+                  <label class="icon-btn heart" for="like-3" aria-label="Like">
+                    <svg class="ico heart-outline" aria-hidden="true"><use href="#i-heart"/></svg>
+                    <svg class="ico heart-fill" aria-hidden="true"><use href="#i-heart-fill"/></svg>
+                  </label>
+                  <label class="icon-btn" for="cmt-3" aria-label="Comment"><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg></label>
+                  <button class="icon-btn" type="button" aria-label="Share"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  <span class="spacer"></span>
+                  <label class="icon-btn" for="save-3" aria-label="Save">
+                    <svg class="ico save-outline" aria-hidden="true"><use href="#i-bookmark"/></svg>
+                    <svg class="ico save-fill" aria-hidden="true"><use href="#i-bookmark-fill"/></svg>
+                  </label>
+                </div>
+                <div class="meta">
+                  <p class="likes"><span class="count-off">3,402</span><span class="count-on">3,403</span> likes</p>
+                  <p class="caption"><a href="#profile"><strong>noah.frames</strong></a> Up before class. The ridge was quiet and the light was doing all the work. <a class="tag" href="#explore">#fieldnotes</a></p>
+                  <details class="all-comments">
+                    <summary>View all 41 comments</summary>
+                    <p><a href="#profile"><strong>travel.with.sam</strong></a> I need this route.</p>
+                    <p><a href="#profile"><strong>jordan.pix</strong></a> The green layer is so clean.</p>
+                  </details>
+                  <time datetime="2026-10-04">1 day ago</time>
+                  <div class="add-comment">
+                    <input class="comment-input" id="cmt-3" type="text" placeholder="Add a comment…" aria-label="Add a comment">
+                    <svg class="ico" aria-hidden="true"><use href="#i-emoji"/></svg>
+                    <span class="post-btn">Post</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <article class="post">
+              <input class="ghost like-toggle" type="checkbox" id="like-4" aria-label="Like post by jordan.pix">
+              <input class="ghost save-toggle" type="checkbox" id="save-4" aria-label="Save post by jordan.pix">
+              <div class="post-body">
+                <header class="post-head">
+                  <a href="#profile"><span class="ring"><span class="av av-sm av-jordan">J</span></span></a>
+                  <a class="who" href="#profile"><strong>jordan.pix</strong><span class="loc">Maple &amp; Rye</span></a>
+                  <details class="post-more">
+                    <summary aria-label="More options"><svg class="ico" aria-hidden="true"><use href="#i-dots"/></svg></summary>
+                    <div class="post-menu">
+                      <a href="#profile">About this account</a>
+                      <span>Copy link</span>
+                      <span>Unfollow</span>
+                    </div>
+                  </details>
+                </header>
+                <div class="media sq">
+                  <label class="like-hit" for="like-4" aria-label="Like this photo">
+                    <span class="shot shot-latte" role="img" aria-label="A cup of coffee on a wooden table"></span>
+                  </label>
+                  <div class="big-heart" aria-hidden="true"><svg class="ico"><use href="#i-heart-fill"/></svg></div>
+                </div>
+                <div class="actions">
+                  <label class="icon-btn heart" for="like-4" aria-label="Like">
+                    <svg class="ico heart-outline" aria-hidden="true"><use href="#i-heart"/></svg>
+                    <svg class="ico heart-fill" aria-hidden="true"><use href="#i-heart-fill"/></svg>
+                  </label>
+                  <label class="icon-btn" for="cmt-4" aria-label="Comment"><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg></label>
+                  <button class="icon-btn" type="button" aria-label="Share"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  <span class="spacer"></span>
+                  <label class="icon-btn" for="save-4" aria-label="Save">
+                    <svg class="ico save-outline" aria-hidden="true"><use href="#i-bookmark"/></svg>
+                    <svg class="ico save-fill" aria-hidden="true"><use href="#i-bookmark-fill"/></svg>
+                  </label>
+                </div>
+                <div class="meta">
+                  <p class="likes"><span class="count-off">640</span><span class="count-on">641</span> likes</p>
+                  <p class="caption"><a href="#profile"><strong>jordan.pix</strong></a> Office hours, but make it a corner table. <a class="tag" href="#explore">#studybreak</a></p>
+                  <details class="all-comments">
+                    <summary>View all 6 comments</summary>
+                    <p><a href="#profile"><strong>riley.day</strong></a> Order the second cup. You earned it.</p>
+                  </details>
+                  <time datetime="2026-10-03">2 days ago</time>
+                  <div class="add-comment">
+                    <input class="comment-input" id="cmt-4" type="text" placeholder="Add a comment…" aria-label="Add a comment">
+                    <svg class="ico" aria-hidden="true"><use href="#i-emoji"/></svg>
+                    <span class="post-btn">Post</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section id="search" class="view page-pad">
+            <h2 class="vh">Search</h2>
+            <input class="ghost" type="checkbox" id="clear-recent">
+            <div class="searchbar">
+              <svg class="ico" aria-hidden="true"><use href="#i-search"/></svg>
+              <input type="search" placeholder="Search" aria-label="Search">
+            </div>
+            <div class="recent-head">
+              <h2>Recent</h2>
+              <label class="text-btn" for="clear-recent">Clear all</label>
+            </div>
+            <div class="recents">
+              <div class="recent">
+                <input class="ghost" type="checkbox" id="rm-1">
+                <a href="#profile"><span class="av av-md av-north">N</span></a>
+                <a class="name" href="#profile"><strong>studio.north</strong><span>North Studio</span></a>
+                <label class="x" for="rm-1" aria-label="Remove studio.north">×</label>
+              </div>
+              <div class="recent">
+                <input class="ghost" type="checkbox" id="rm-2">
+                <a href="#profile"><span class="av av-md av-priya">P</span></a>
+                <a class="name" href="#profile"><strong>priya.nair</strong><span>Priya Nair</span></a>
+                <label class="x" for="rm-2" aria-label="Remove priya.nair">×</label>
+              </div>
+              <div class="recent">
+                <input class="ghost" type="checkbox" id="rm-3">
+                <a href="#profile"><span class="av av-md av-campus">C</span></a>
+                <a class="name" href="#profile"><strong>campus.clicks</strong><span>Campus Clicks</span></a>
+                <label class="x" for="rm-3" aria-label="Remove campus.clicks">×</label>
+              </div>
+              <div class="recent">
+                <input class="ghost" type="checkbox" id="rm-4">
+                <a href="#explore"><span class="av av-md av-sam">S</span></a>
+                <a class="name" href="#explore"><strong>travel.with.sam</strong><span>Sam Patel</span></a>
+                <label class="x" for="rm-4" aria-label="Remove travel.with.sam">×</label>
+              </div>
+            </div>
+          </section>
+
+          <section id="explore" class="view">
+            <h2 class="vh">Explore</h2>
+            <div class="explore-grid">
+              <div class="tile"><span class="shot shot-skyline" role="img" aria-label="City skyline at night"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>2,341</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>86</span></span></div>
+              <div class="tile"><span class="shot shot-bloom" role="img" aria-label="Pink flowers"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>1,108</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>24</span></span></div>
+              <div class="tile"><span class="shot shot-dunes" role="img" aria-label="Sand dunes"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>4,902</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>132</span></span></div>
+              <div class="tile"><span class="shot shot-woods" role="img" aria-label="Forest trees"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>876</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>19</span></span></div>
+              <div class="tile"><span class="shot shot-desk" role="img" aria-label="Camera on a desk"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>3,220</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>74</span></span></div>
+              <div class="tile"><span class="shot shot-books" role="img" aria-label="A row of books"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>654</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>11</span></span></div>
+              <div class="tile"><span class="shot shot-beach" role="img" aria-label="Beach sunset"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>1,284</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>18</span></span></div>
+              <div class="tile"><span class="shot shot-peaks" role="img" aria-label="Mountains"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>3,402</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>41</span></span></div>
+              <div class="tile"><span class="shot shot-night" role="img" aria-label="Neon night"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>8,431</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>230</span></span></div>
+            </div>
+          </section>
+
+          <section id="reels" class="view">
+            <h2 class="vh">Reels</h2>
+            <input class="ghost" type="checkbox" id="like-reel" aria-label="Like reel">
+            <div class="reel-layout">
+              <article class="reel">
+                <span class="shot shot-night" role="img" aria-label="Neon night street"></span>
+                <div class="reel-side">
+                  <label class="reel-btn reel-heart" for="like-reel">
+                    <svg class="ico off" aria-hidden="true"><use href="#i-heart"/></svg>
+                    <svg class="ico on" aria-hidden="true"><use href="#i-heart-fill"/></svg>
+                    <span>12.4K</span>
+                  </label>
+                  <button class="reel-btn" type="button" aria-label="Comments">
+                    <svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>
+                    <span>230</span>
+                  </button>
+                  <button class="reel-btn" type="button" aria-label="Share">
+                    <svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>
+                    <span>Share</span>
+                  </button>
+                </div>
+                <div class="reel-meta">
+                  <div class="reel-user">
+                    <span class="av av-sm av-sam">S</span>
+                    <strong>travel.with.sam</strong>
+                  </div>
+                  <p>Night bus, neon, and a playlist for the ride home.</p>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section id="messages" class="view">
+            <h2 class="vh">Messages</h2>
+            <input class="ghost" type="radio" name="chat" id="chat-maya" checked>
+            <input class="ghost" type="radio" name="chat" id="chat-noah">
+            <input class="ghost" type="radio" name="chat" id="chat-lina">
+            <div class="inbox">
+              <div class="thread-list">
+                <div class="dm-head">alex.studio</div>
+                <label class="thread unread" for="chat-maya">
+                  <span class="av av-lg av-maya">M</span>
+                  <span><strong>maya.codes</strong><span class="preview">The cove photos are in · 2h</span></span>
+                </label>
+                <label class="thread" for="chat-noah">
+                  <span class="av av-lg av-noah">N</span>
+                  <span><strong>noah.frames</strong><span class="preview">Trail pin sent · 1d</span></span>
+                </label>
+                <label class="thread" for="chat-lina">
+                  <span class="av av-lg av-lina">L</span>
+                  <span><strong>lina.eats</strong><span class="preview">Potluck on Friday? · 3d</span></span>
+                </label>
+                <div class="thread">
+                  <span class="av av-lg av-jordan">J</span>
+                  <span><strong>jordan.pix</strong><span class="preview">You: See you at Maple · 1w</span></span>
+                </div>
+              </div>
+              <div class="chat-pane">
+                <div class="conversation conv-maya">
+                  <header class="chat-head"><span class="av av-sm av-maya">M</span> maya.codes</header>
+                  <div class="chat-scroll">
+                    <p class="day">Today</p>
+                    <p class="bubble">Just exported the cove set. The gold frame is the one.</p>
+                    <p class="bubble me">Use that as the cover. It feels like the whole trip.</p>
+                    <p class="bubble">Done. I dropped it in the shared folder for the lab demo.</p>
+                    <p class="bubble me">Perfect. I'll credit you on the profile grid.</p>
+                  </div>
+                  <div class="composer">
+                    <input type="text" placeholder="Message…" aria-label="Message maya.codes">
+                    <button class="icon-btn" type="button" aria-label="Send"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  </div>
+                </div>
+                <div class="conversation conv-noah">
+                  <header class="chat-head"><span class="av av-sm av-noah">N</span> noah.frames</header>
+                  <div class="chat-scroll">
+                    <p class="day">Yesterday</p>
+                    <p class="bubble">Ridge Trail starts at the north lot. Go early, the light leaves fast.</p>
+                    <p class="bubble me">Saving this. I'll bring the wide lens.</p>
+                    <p class="bubble">I'll mark the turnout on the map tonight.</p>
+                  </div>
+                  <div class="composer">
+                    <input type="text" placeholder="Message…" aria-label="Message noah.frames">
+                    <button class="icon-btn" type="button" aria-label="Send"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  </div>
+                </div>
+                <div class="conversation conv-lina">
+                  <header class="chat-head"><span class="av av-sm av-lina">L</span> lina.eats</header>
+                  <div class="chat-scroll">
+                    <p class="day">Wednesday</p>
+                    <p class="bubble">Potluck on Friday after the lab?</p>
+                    <p class="bubble me">Yes. I'll bring coffee and cups.</p>
+                    <p class="bubble">I'll handle pasta. Two trays, so nobody leaves hungry.</p>
+                  </div>
+                  <div class="composer">
+                    <input type="text" placeholder="Message…" aria-label="Message lina.eats">
+                    <button class="icon-btn" type="button" aria-label="Send"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="notifications" class="view page-pad">
+            <h2 class="page-title">Notifications</h2>
+            <h3 class="group-label">Today</h3>
+            <article class="note">
+              <span class="av av-md av-maya">M</span>
+              <p><strong>maya.codes</strong> liked your photo. <span class="when">2h</span></p>
+              <span class="thumb"><span class="shot shot-desk" role="img" aria-label="Your photo"></span></span>
+            </article>
+            <article class="note">
+              <span class="av av-md av-sam">S</span>
+              <p><strong>travel.with.sam</strong> started following you. <span class="when">5h</span></p>
+              <input class="ghost follow-check" type="checkbox" id="fol-note-1">
+              <label class="follow-btn" for="fol-note-1"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+            </article>
+            <h3 class="group-label">This week</h3>
+            <article class="note">
+              <span class="av av-md av-noah">N</span>
+              <p><strong>noah.frames</strong>, <strong>lina.eats</strong> and others liked your photo. <span class="when">2d</span></p>
+              <span class="thumb"><span class="shot shot-books" role="img" aria-label="Your photo"></span></span>
+            </article>
+            <article class="note">
+              <span class="av av-md av-priya">P</span>
+              <p><strong>priya.nair</strong> mentioned you in a comment. <span class="when">3d</span></p>
+              <span class="thumb"><span class="shot shot-bloom" role="img" aria-label="Tagged photo"></span></span>
+            </article>
+            <article class="note">
+              <span class="av av-md av-campus">C</span>
+              <p><strong>campus.clicks</strong> started following you. <span class="when">4d</span></p>
+              <input class="ghost follow-check" type="checkbox" id="fol-note-2">
+              <label class="follow-btn" for="fol-note-2"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+            </article>
+            <article class="note">
+              <span class="av av-md av-jordan">J</span>
+              <p><strong>jordan.pix</strong> liked your photo. <span class="when">6d</span></p>
+              <span class="thumb"><span class="shot shot-latte" role="img" aria-label="Your photo"></span></span>
+            </article>
+          </section>
+
+          <section id="profile" class="view">
+            <h2 class="vh">Profile</h2>
+            <input class="ghost" type="radio" name="ptab" id="ptab-posts" checked>
+            <input class="ghost" type="radio" name="ptab" id="ptab-reels">
+            <input class="ghost" type="radio" name="ptab" id="ptab-tagged">
+
+            <header class="profile-head">
+              <span class="ring fresh"><span class="av av-xl av-alex">A</span></span>
+              <div>
+                <div class="profile-top">
+                  <h2>alex.studio</h2>
+                  <button class="btn" type="button">Edit profile</button>
+                  <button class="btn" type="button">View archive</button>
+                  <a class="btn" href="#login">Log out</a>
+                </div>
+                <ul class="stats">
+                  <li><strong>12</strong> posts</li>
+                  <li><strong>1,482</strong> followers</li>
+                  <li><strong>318</strong> following</li>
+                </ul>
+                <div class="bio">
+                  <strong>Alex Rivera</strong>
+                  <p>Web Programming Lab</p>
+                  <p>Interfaces, coffee, and campus light.</p>
+                </div>
+              </div>
+            </header>
+
+            <div class="highlights">
+              <div class="highlight"><span class="ring fresh"><span class="shot shot-beach mini" role="img" aria-label="Travel highlight"></span></span><span>Travel</span></div>
+              <div class="highlight"><span class="ring fresh"><span class="shot shot-desk mini" role="img" aria-label="Studio highlight"></span></span><span>Studio</span></div>
+              <div class="highlight"><span class="ring fresh"><span class="shot shot-pasta mini" role="img" aria-label="Food highlight"></span></span><span>Food</span></div>
+              <div class="highlight"><span class="ring"><span class="shot shot-books mini" role="img" aria-label="Notes highlight"></span></span><span>Notes</span></div>
+            </div>
+
+            <div class="ptabs">
+              <label for="ptab-posts"><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg> POSTS</label>
+              <label for="ptab-reels"><svg class="ico" aria-hidden="true"><use href="#i-reels"/></svg> REELS</label>
+              <label for="ptab-tagged"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg> TAGGED</label>
+            </div>
+
+            <div class="panel-posts">
+              <div class="tile"><span class="shot shot-desk"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>920</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>14</span></span></div>
+              <div class="tile"><span class="shot shot-books"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>611</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>8</span></span></div>
+              <div class="tile"><span class="shot shot-skyline"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>1,440</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>33</span></span></div>
+              <div class="tile"><span class="shot shot-woods"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>508</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>6</span></span></div>
+              <div class="tile"><span class="shot shot-dunes"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>2,015</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>47</span></span></div>
+              <div class="tile"><span class="shot shot-bloom"></span><span class="overlay"><span><svg class="ico" aria-hidden="true"><use href="#i-heart-fill"/></svg>733</span><span><svg class="ico" aria-hidden="true"><use href="#i-comment"/></svg>12</span></span></div>
+            </div>
+            <div class="panel-reels">
+              <div class="tile"><span class="shot shot-night"></span></div>
+              <div class="tile"><span class="shot shot-skyline"></span></div>
+              <div class="tile"><span class="shot shot-peaks"></span></div>
+            </div>
+            <div class="panel-tagged empty">
+              <div class="empty-ring"><svg class="ico" aria-hidden="true"><use href="#i-camera"/></svg></div>
+              <h3>Photos of you</h3>
+              <p>When people tag you in photos, they will appear here.</p>
+            </div>
+          </section>
+
+        </div>
+
+        <aside class="right-col">
+          <div class="me">
+            <a href="#profile"><span class="av av-md av-alex">A</span></a>
+            <a class="name" href="#profile"><strong>alex.studio</strong><span>Alex Rivera</span></a>
+            <a class="switch" href="#login">Switch</a>
+          </div>
+          <div class="suggest-head">
+            <span>Suggested for you</span>
+            <a href="#search">See All</a>
+          </div>
+          <div class="suggest">
+            <a href="#profile"><span class="av av-sm av-north">N</span></a>
+            <a class="name" href="#profile"><strong>studio.north <span class="verified" aria-label="Verified"><svg class="ico" aria-hidden="true"><use href="#i-badge"/></svg></span></strong><span>Followed by maya.codes</span></a>
+            <input class="ghost follow-check" type="checkbox" id="fol-north">
+            <label class="follow" for="fol-north"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+          </div>
+          <div class="suggest">
+            <a href="#profile"><span class="av av-sm av-priya">P</span></a>
+            <span class="name"><strong>priya.nair</strong><span>Suggested for you</span></span>
+            <input class="ghost follow-check" type="checkbox" id="fol-priya">
+            <label class="follow" for="fol-priya"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+          </div>
+          <div class="suggest">
+            <a href="#profile"><span class="av av-sm av-campus">C</span></a>
+            <span class="name"><strong>campus.clicks</strong><span>Followed by jordan.pix</span></span>
+            <input class="ghost follow-check" type="checkbox" id="fol-campus">
+            <label class="follow" for="fol-campus"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+          </div>
+          <div class="suggest">
+            <a href="#profile"><span class="av av-sm av-riley">R</span></a>
+            <span class="name"><strong>riley.day</strong><span>Suggested for you</span></span>
+            <input class="ghost follow-check" type="checkbox" id="fol-riley">
+            <label class="follow" for="fol-riley"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+          </div>
+          <div class="suggest">
+            <a href="#explore"><span class="av av-sm av-sam">S</span></a>
+            <span class="name"><strong>travel.with.sam</strong><span>Followed by noah.frames</span></span>
+            <input class="ghost follow-check" type="checkbox" id="fol-sam">
+            <label class="follow" for="fol-sam"><span class="label-off">Follow</span><span class="label-on">Following</span></label>
+          </div>
+          <footer class="fineprint">
+            <p>About · Help · Press · API · Jobs · Privacy · Terms · Locations · Language</p>
+            <p>© 2026 INSTAGRAM CLONE · WEB PROGRAMMING LAB</p>
+          </footer>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <section id="login" class="gate">
+    <div class="phone" aria-hidden="true">
+      <span class="notch"></span>
+      <span class="shot shot-beach"></span>
+      <div class="phone-chrome">
+        <span class="av av-xs av-maya">M</span>
+        <span>maya.codes</span>
+      </div>
+    </div>
+    <div class="gate-col">
+      <div class="card">
+        <span class="logo-word">Instagram</span>
+        <input type="text" placeholder="Phone number, username, or email" aria-label="Username" autocomplete="off">
+        <input type="password" placeholder="Password" aria-label="Password" autocomplete="off">
+        <a class="btn-primary" href="#home">Log in</a>
+        <div class="or"><span>OR</span></div>
+        <a class="fb-link" href="#home"><span class="f-badge">f</span> Log in with Facebook</a>
+        <a class="forgot" href="#forgot">Forgot password?</a>
+        <p class="demo-note">Front-end demo for the Web Programming Lab. Log in opens the feed. Nothing is sent to a server.</p>
+      </div>
+      <div class="card alt-card">
+        <p>Don't have an account? <a href="#signup">Sign up</a></p>
+      </div>
+      <p class="get-app">Get the app.</p>
+      <div class="badges">
+        <span class="store">App Store</span>
+        <span class="store">Google Play</span>
+      </div>
+      <p class="lab-foot">Web Programming Laboratory · Instagram clone</p>
+    </div>
+  </section>
+
+  <section id="signup" class="gate">
+    <div class="gate-col">
+      <div class="card">
+        <span class="logo-word">Instagram</span>
+        <p class="demo-note flush">Sign up to see photos and videos from your friends.</p>
+        <input type="email" placeholder="Mobile number or email" aria-label="Email" autocomplete="off">
+        <input type="text" placeholder="Full name" aria-label="Full name" autocomplete="off">
+        <input type="text" placeholder="Username" aria-label="Username" autocomplete="off">
+        <input type="password" placeholder="Password" aria-label="Password" autocomplete="off">
+        <a class="btn-primary" href="#home">Sign up</a>
+        <p class="demo-note">This form stays in the browser. Sign up opens the same demo feed.</p>
+      </div>
+      <div class="card alt-card">
+        <p>Have an account? <a href="#login">Log in</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="forgot" class="gate">
+    <div class="gate-col">
+      <div class="card">
+        <span class="logo-word">Instagram</span>
+        <h2 class="gate-heading">Trouble logging in?</h2>
+        <p class="demo-note flush">Enter your email, phone, or username and we'll pretend to send a login link. This lab clone does not reset real passwords.</p>
+        <input type="text" placeholder="Email, phone, or username" aria-label="Account" autocomplete="off">
+        <a class="btn-primary" href="#login">Send login link</a>
+        <div class="or"><span>OR</span></div>
+        <a class="fb-link" href="#signup">Create new account</a>
+        <a class="forgot" href="#login">Back to login</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="create-title">
+    <label class="modal-backdrop" for="create-open" aria-label="Close dialog"></label>
+    <div class="dialog">
+      <header>
+        <h2 id="create-title">Create new post</h2>
+        <label class="icon-btn close" for="create-open" aria-label="Close">
+          <svg class="ico" aria-hidden="true"><use href="#i-close"/></svg>
+        </label>
+      </header>
+      <div class="dropzone">
+        <div class="stack-art" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p>Drag photos and videos here</p>
+        <label class="file-btn">
+          Select from computer
+          <input type="file" accept="image/*" hidden>
+        </label>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

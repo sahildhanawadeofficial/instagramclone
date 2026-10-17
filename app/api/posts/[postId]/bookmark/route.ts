@@ -1,0 +1,33 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/mongoose";
+import User from "@/models/User";
+import Post from "@/models/Post";
+
+export async function POST(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const { postId } = await params;
+  const userId = (session.user as any).id;
+  await dbConnect();
+  const post = await Post.findById(postId).select("_id");
+  if (!post) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+  const me = await User.findById(userId);
+  if (!me) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+  const bookmarks = me.bookmarks as any;
+  const alreadyBookmarked = bookmarks.some((id: any) => id.toString() === postId);
+  if (alreadyBookmarked) {
+    bookmarks.pull(postId);
+  } else {
+    bookmarks.addToSet(postId);
+  }
+  await me.save();
+  return NextResponse.json({ bookmarked: !alreadyBookmarked });
+}
