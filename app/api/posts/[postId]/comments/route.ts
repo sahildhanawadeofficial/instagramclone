@@ -11,7 +11,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pos
   const { postId } = await params;
   await dbConnect();
   const comments = await Comment.find({ post: postId })
-    .sort({ createdAt: -1 })
+    .sort({ createdAt: 1 })
     .populate("user", "name username image");
   return NextResponse.json(comments);
 }
@@ -23,7 +23,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   }
   const { postId } = await params;
   const userId = (session.user as any).id;
-  const { text } = await request.json();
+  const { text, parentId } = await request.json();
   if (!text || !text.trim()) {
     return NextResponse.json({ error: "Comment text is required" }, { status: 400 });
   }
@@ -40,8 +40,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
     post: postId,
     user: user._id,
     text: text.trim(),
+    parentId: parentId || null,
   });
   await comment.populate("user", "name username image");
+
   // Create notification for post owner (not self)
   if (post.user.toString() !== userId) {
     await Notification.create({
@@ -52,5 +54,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
       comment: comment._id,
     });
   }
+
+  // If this was a reply to another comment, also notify the comment author
+  if (parentId) {
+    const parentComment = await Comment.findById(parentId);
+    if (parentComment && parentComment.user.toString() !== userId && parentComment.user.toString() !== post.user.toString()) {
+      await Notification.create({
+        recipient: parentComment.user,
+        sender: userId,
+        type: "comment",
+        post: postId,
+        comment: comment._id,
+      });
+    }
+  }
+
   return NextResponse.json(comment, { status: 201 });
 }

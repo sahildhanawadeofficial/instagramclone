@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 import {
   FiHome,
   FiSearch,
@@ -77,8 +78,25 @@ export default function InstagramApp() {
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [editBio, setEditBio] = useState("");
+  const [explorePosts, setExplorePosts] = useState<any[]>([]);
+  const [exploreLoading, setExploreLoading] = useState(false);
 
   const currentUserId = session?.user?.id;
+
+  const fetchExplore = useCallback(async () => {
+    setExploreLoading(true);
+    try {
+      const res = await fetch("/api/explore", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setExplorePosts(data.posts || []);
+      }
+    } catch {
+      setExplorePosts([]);
+    } finally {
+      setExploreLoading(false);
+    }
+  }, []);
 
   const fetchPosts = useCallback(async (cursor?: string) => {
     try {
@@ -184,6 +202,23 @@ export default function InstagramApp() {
     fetchDms();
     fetchSuggestions();
   }, [fetchPosts, fetchNotifications, fetchDms, fetchSuggestions]);
+
+  useEffect(() => {
+    if (tab === "Explore" || tab === "Reels") {
+      fetchExplore();
+    }
+  }, [tab, fetchExplore]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search.trim()) {
+        handleSearchUsers(search);
+      } else {
+        setSearchResults([]);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -518,49 +553,49 @@ export default function InstagramApp() {
                   )}
                 </>
               )}
-              <aside className="right-rail hidden lg:block">
-                <div className="profile-row flex items-center gap-3 mb-6">
-                  <Avatar name={user?.name} src={user?.image} className="w-10 h-10 rounded-full" />
-                  <div>
-                    <b className="text-sm font-semibold">{user?.name}</b>
-                    <small className="text-xs text-muted-foreground block">{user ? `@${(user as any).username}` : ""}</small>
+            </section>
+            <aside className="right-rail hidden lg:block sticky top-6 self-start">
+              <div className="profile-row flex items-center gap-3 mb-6">
+                <Avatar name={user?.name} src={user?.image} className="w-10 h-10 rounded-full" />
+                <div>
+                  <b className="text-sm font-semibold">{user?.name}</b>
+                  <small className="text-xs text-muted-foreground block">{user ? `@${(user as any).username}` : ""}</small>
+                </div>
+                <button className="ml-auto text-xs text-primary underline underline-offset-4" onClick={() => {
+                  const u = user as any;
+                  setEditName(u.name || "");
+                  setEditUsername(u.username || "");
+                  setEditBio(u.bio || "");
+                  setEditProfileOpen(true);
+                }}>
+                  Edit profile
+                </button>
+              </div>
+              <div className="suggestion-title flex items-center justify-between mb-3">
+                <b className="text-sm font-semibold">Suggested for you</b>
+                <button className="text-xs text-primary underline underline-offset-4">See All</button>
+              </div>
+              {suggestions.map((s) => (
+                <div key={s._id} className="profile-row small flex items-center gap-3 mb-3">
+                  <Avatar name={s.name} src={s.image} className="w-8 h-8 rounded-full" />
+                  <div className="flex-1">
+                    <b className="text-sm font-semibold">{s.name}</b>
+                    <small className="text-xs text-muted-foreground block">@{s.username}</small>
+                    <small className="text-xs text-muted-foreground block">Suggested for you</small>
                   </div>
-                  <button className="ml-auto text-xs text-primary underline underline-offset-4" onClick={() => {
-                    const u = user as any;
-                    setEditName(u.name || "");
-                    setEditUsername(u.username || "");
-                    setEditBio(u.bio || "");
-                    setEditProfileOpen(true);
-                  }}>
-                    Edit profile
+                  <button
+                    onClick={() => void handleFollow(s._id, false)}
+                    className="text-xs font-medium transition-colors"
+                  >
+                    Follow
                   </button>
                 </div>
-                <div className="suggestion-title flex items-center justify-between mb-3">
-                  <b className="text-sm font-semibold">Suggested for you</b>
-                  <button className="text-xs text-primary underline underline-offset-4">See All</button>
-                </div>
-                {suggestions.map((s) => (
-                  <div key={s._id} className="profile-row small flex items-center gap-3 mb-3">
-                    <Avatar name={s.name} src={s.image} className="w-8 h-8 rounded-full" />
-                    <div className="flex-1">
-                      <b className="text-sm font-semibold">{s.name}</b>
-                      <small className="text-xs text-muted-foreground block">@{s.username}</small>
-                      <small className="text-xs text-muted-foreground block">Suggested for you</small>
-                    </div>
-                    <button
-                      onClick={() => void handleFollow(s._id, false)}
-                      className="text-xs font-medium transition-colors"
-                    >
-                      Follow
-                    </button>
-                  </div>
-                ))}
-                <p className="mt-6 text-xs text-muted-foreground leading-relaxed">
-                  About · Help · Press · API · Jobs · Privacy · Terms<br />
-                  © 2025 INSTAGRAM FROM META
-                </p>
-              </aside>
-            </section>
+              ))}
+              <p className="mt-6 text-xs text-muted-foreground leading-relaxed">
+                About · Help · Press · API · Jobs · Privacy · Terms<br />
+                © 2025 INSTAGRAM FROM META
+              </p>
+            </aside>
           </div>
         ) : tab === "Messages" ? (
           <div className="max-w-md mx-auto px-4">
@@ -674,10 +709,7 @@ export default function InstagramApp() {
                   <input
                     autoFocus
                     value={search}
-                    onChange={(e) => {
-                      setSearch(e.target.value);
-                      handleSearchUsers(e.target.value);
-                    }}
+                    onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search people…"
                     className="pl-10 pr-4 py-2 rounded-full border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                   />
@@ -719,18 +751,39 @@ export default function InstagramApp() {
                   <h1 className="text-xl font-bold">{tab}</h1>
                 </div>
                 <div className="explore-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 p-2">
-                  {filteredPosts.map((post) => (
-                    <div key={post._id} className="grid-card relative group cursor-pointer">
-                      <img
-                        src={post.mediaType === "video" ? post.videoUrl : post.imageUrl}
-                        alt={post.caption}
-                        className="grid-image w-full h-32 object-cover rounded-lg"
-                      />
-                      <div className="grid-overlay absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
-                        <FiHeart size={20} color="#fff" />
-                      </div>
-                    </div>
-                  ))}
+                  {exploreLoading ? (
+                    <div className="col-span-full py-16 text-center text-sm text-muted-foreground">Loading explore posts…</div>
+                  ) : explorePosts.length === 0 ? (
+                    <div className="col-span-full py-16 text-center text-sm text-muted-foreground">No posts yet in explore.</div>
+                  ) : (
+                    explorePosts.map((post) => (
+                      <Link
+                        key={post._id}
+                        href={`/posts/${post._id}`}
+                        className="grid-card relative group cursor-pointer block rounded-xl overflow-hidden aspect-square bg-muted"
+                      >
+                        {post.mediaType === "video" ? (
+                          <video
+                            src={post.videoUrl}
+                            className="w-full h-full object-cover"
+                            muted
+                            playsInline
+                          />
+                        ) : (
+                          <img
+                            src={post.imageUrl}
+                            alt={post.caption || "Explore post"}
+                            className="grid-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                          />
+                        )}
+                        <div className="grid-overlay absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-semibold gap-2">
+                          <FiHeart size={18} className="fill-white" />
+                          <span>{post.likes?.length || 0}</span>
+                        </div>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </>
             )}

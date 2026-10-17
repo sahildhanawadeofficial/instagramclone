@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongoose";
 import Notification from "@/models/Notification";
-import User from "@/models/User";
+import { getMediaUrl } from "@/lib/s3";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -16,9 +16,22 @@ export async function GET() {
     .sort({ createdAt: -1 })
     .limit(50)
     .populate("sender", "name username image")
-    .populate("post", "imageUrl videoUrl mediaType caption")
+    .populate("post", "imageUrl videoUrl mediaType caption mediaKey")
     .populate("comment", "text");
-  return NextResponse.json(notifications);
+
+  const resolved = notifications.map((n) => {
+    const obj = n.toObject() as any;
+    if (obj.post && typeof obj.post === "object") {
+      if (obj.post.mediaKey) {
+        obj.post.imageUrl = getMediaUrl(obj.post.mediaKey);
+      } else if (obj.post.imageUrl) {
+        obj.post.imageUrl = getMediaUrl(obj.post.imageUrl);
+      }
+    }
+    return obj;
+  });
+
+  return NextResponse.json(resolved);
 }
 
 export async function PATCH(request: Request) {

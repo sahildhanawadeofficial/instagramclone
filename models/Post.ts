@@ -6,22 +6,30 @@ export interface IPost extends Document {
   user: mongoose.Types.ObjectId;
   caption: string;
   location?: string;
+  mediaKey?: string;
+  mediaKeys?: string[];
   imageUrl?: string;
   videoUrl?: string;
   mediaType: MediaType;
   likes: mongoose.Types.ObjectId[];
   createdAt: Date;
+  updatedAt: Date;
 }
 
-const PostSchema = new Schema<IPost>({
-  user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-  caption: { type: String, default: "", trim: true },
-  location: { type: String, trim: true },
-  imageUrl: { type: String },
-  videoUrl: { type: String },
-  mediaType: { type: String, enum: ["image", "video"], default: "image" },
-  likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
-}, { timestamps: true });
+const PostSchema = new Schema<IPost>(
+  {
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    caption: { type: String, default: "", trim: true },
+    location: { type: String, trim: true, default: "" },
+    mediaKey: { type: String },
+    mediaKeys: [{ type: String }],
+    imageUrl: { type: String },
+    videoUrl: { type: String },
+    mediaType: { type: String, enum: ["image", "video"], default: "image" },
+    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  },
+  { timestamps: true }
+);
 
 PostSchema.index({ createdAt: -1 });
 PostSchema.index({ user: 1, createdAt: -1 });

@@ -11,9 +11,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
   }
   const { userId } = await params;
   await dbConnect();
-  const user = await User.findById(userId).select("name username image followers following");
+  const user = await User.findById(userId)
+    .select("followers")
+    .populate("followers", "name username image bio followers following");
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
-  return NextResponse.json(user);
+  return NextResponse.json({ followers: user.followers });
 }

@@ -1,7 +1,8 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { s3Client, bucketName, getMediaUrl } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -29,35 +30,33 @@ export async function POST(request: Request) {
   if (file.size > MAX_BYTES) {
     return NextResponse.json({ error: "The file is too large. Maximum size is 100 MB." }, { status: 413 });
   }
-  if (!process.env.S3_BUCKET_NAME || !process.env.AWS_REGION) {
+  if (!bucketName) {
     return NextResponse.json({ error: "S3 is not configured. Add the AWS values from .env.example." }, { status: 503 });
   }
 
   const safeName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "-");
-  const key = `uploads/${crypto.randomUUID()}-${safeName}`;
-  const client = new S3Client({ region: process.env.AWS_REGION });
+  const userId = (session.user as any).id || "user";
+  const key = `uploads/${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
+
   try {
-    await client.send(new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET_NAME,
-      Key: key,
-      Body: Buffer.from(await file.arrayBuffer()),
-      ContentType: contentType,
-    }));
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: bucketName,
+        Key: key,
+        Body: Buffer.from(await file.arrayBuffer()),
+        ContentType: contentType,
+      })
+    );
   } catch (error) {
     console.error("S3 upload failed", error);
-    return NextResponse.json({
-      error: "Storage upload failed. Check the AWS credentials, bucket name, region, and bucket permissions.",
-    }, { status: 502 });
+    return NextResponse.json(
+      {
+        error: "Storage upload failed. Check the AWS credentials, bucket name, region, and bucket permissions.",
+      },
+      { status: 502 }
+    );
   }
 
-  const configuredBaseUrl = process.env.NEXT_PUBLIC_CLOUDFRONT_URL?.trim().replace(/\/$/, "");
-  if (!configuredBaseUrl) {
-    return NextResponse.json({ error: "NEXT_PUBLIC_CLOUDFRONT_URL is not configured." }, { status: 503 });
-  }
-  const baseUrl = /^https?:\/\//i.test(configuredBaseUrl)
-    ? configuredBaseUrl
-    : `https://${configuredBaseUrl}`;
-  const publicUrl = `${baseUrl}/${key}`;
-
+  const publicUrl = getMediaUrl(key);
   return NextResponse.json({ key, publicUrl, contentType });
 }
