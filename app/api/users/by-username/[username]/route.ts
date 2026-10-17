@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongoose";
 import User from "@/models/User";
 import Post from "@/models/Post";
+import { getMediaUrl } from "@/lib/s3";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ username: string }> }) {
   const session = await getServerSession(authOptions);
@@ -31,11 +32,30 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
   // If private account and not following and not self, do not return posts
   let posts: any[] = [];
   if (!user.isPrivate || isFollowing || isSelf) {
-    posts = await Post.find({ user: user._id }).sort({ createdAt: -1 }).limit(100);
+    const rawPosts = await Post.find({ user: user._id }).sort({ createdAt: -1 }).limit(100);
+    posts = rawPosts.map((post) => {
+      const postObj = post.toObject();
+      if (postObj.mediaKey) {
+        if (postObj.mediaType === "video") {
+          postObj.videoUrl = getMediaUrl(postObj.mediaKey);
+        } else {
+          postObj.imageUrl = getMediaUrl(postObj.mediaKey);
+        }
+      } else {
+        if (postObj.imageUrl) postObj.imageUrl = getMediaUrl(postObj.imageUrl);
+        if (postObj.videoUrl) postObj.videoUrl = getMediaUrl(postObj.videoUrl);
+      }
+      return postObj;
+    });
+  }
+
+  const userObj = user.toObject();
+  if (userObj.image) {
+    userObj.image = getMediaUrl(userObj.image);
   }
 
   return NextResponse.json({
-    ...user.toObject(),
+    ...userObj,
     posts,
     isFollowing,
     isSelf,

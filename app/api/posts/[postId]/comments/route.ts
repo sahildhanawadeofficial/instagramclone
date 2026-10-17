@@ -6,14 +6,29 @@ import Post from "@/models/Post";
 import Comment from "@/models/Comment";
 import User from "@/models/User";
 import Notification from "@/models/Notification";
+import mongoose from "mongoose";
+import { getMediaUrl } from "@/lib/s3";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
   await dbConnect();
   const comments = await Comment.find({ post: postId })
     .sort({ createdAt: 1 })
     .populate("user", "name username image");
-  return NextResponse.json(comments);
+
+  const resolved = comments.map((c) => {
+    const obj = c.toObject() as any;
+    if (obj.user && typeof obj.user === "object" && obj.user.image) {
+      obj.user.image = getMediaUrl(obj.user.image);
+    }
+    return obj;
+  });
+
+  return NextResponse.json(resolved);
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ postId: string }> }) {
@@ -21,21 +36,33 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   const { postId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
   const userId = (session.user as any).id;
   const { text, parentId } = await request.json();
   if (!text || !text.trim()) {
     return NextResponse.json({ error: "Comment text is required" }, { status: 400 });
   }
+
+  if (parentId && !mongoose.Types.ObjectId.isValid(parentId)) {
+    return NextResponse.json({ error: "Invalid parent comment id" }, { status: 400 });
+  }
+
   await dbConnect();
   const post = await Post.findById(postId);
   if (!post) {
     return NextResponse.json({ error: "Post not found" }, { status: 404 });
   }
+
   const user = await User.findById(userId);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+
   const comment = await Comment.create({
     post: postId,
     user: user._id,
@@ -69,5 +96,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
     }
   }
 
-  return NextResponse.json(comment, { status: 201 });
+  const commentObj = comment.toObject() as any;
+  if (commentObj.user && typeof commentObj.user === "object" && commentObj.user.image) {
+    commentObj.user.image = getMediaUrl(commentObj.user.image);
+  }
+
+  return NextResponse.json(commentObj, { status: 201 });
 }

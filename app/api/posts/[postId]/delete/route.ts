@@ -6,13 +6,19 @@ import Post from "@/models/Post";
 import Comment from "@/models/Comment";
 import Notification from "@/models/Notification";
 import { deleteS3Object } from "@/lib/s3";
+import mongoose from "mongoose";
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ postId: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
   const { postId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
   const userId = (session.user as any).id;
   await dbConnect();
 

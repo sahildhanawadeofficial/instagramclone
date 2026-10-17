@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
 let cached = (global as any).mongoose;
 
 if (!cached) {
@@ -9,15 +7,24 @@ if (!cached) {
 }
 
 export async function dbConnect() {
-  if (!MONGODB_URI) {
-    throw new Error("Please define the MONGODB_URI environment variable in .env.local");
-  }
+  const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/instagram-clone";
+
   if (cached.conn) return cached.conn;
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI as string, {
-      bufferCommands: false,
-    }).then((mongoose) => mongoose);
+    cached.promise = mongoose
+      .connect(uri, {
+        bufferCommands: false,
+      })
+      .then((m) => m);
   }
-  cached.conn = await cached.promise;
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
   return cached.conn;
 }

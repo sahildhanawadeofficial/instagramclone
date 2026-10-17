@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth";
 import Post from "@/components/post";
 import { getMediaUrl } from "@/lib/s3";
 import { FiArrowLeft } from "react-icons/fi";
+import mongoose from "mongoose";
 
 export default async function PostPage({
   params,
@@ -14,6 +15,10 @@ export default async function PostPage({
   params: Promise<{ postId: string }>;
 }) {
   const { postId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    notFound();
+  }
+
   const session = await getServerSession(authOptions);
   await dbConnect();
 
@@ -22,7 +27,7 @@ export default async function PostPage({
     notFound();
   }
 
-  const postObj = post.toObject();
+  const postObj = post.toObject() as any;
   if (postObj.mediaKey) {
     if (postObj.mediaType === "video") {
       postObj.videoUrl = getMediaUrl(postObj.mediaKey);
@@ -32,6 +37,10 @@ export default async function PostPage({
   } else {
     if (postObj.imageUrl) postObj.imageUrl = getMediaUrl(postObj.imageUrl);
     if (postObj.videoUrl) postObj.videoUrl = getMediaUrl(postObj.videoUrl);
+  }
+
+  if (postObj.user && typeof postObj.user === "object" && postObj.user.image) {
+    postObj.user.image = getMediaUrl(postObj.user.image);
   }
 
   const serializedPost = JSON.parse(JSON.stringify(postObj));

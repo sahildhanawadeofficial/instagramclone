@@ -64,9 +64,9 @@ type Comment = {
 
 export default function Post({ post, currentUserId, onDelete }: PostProps) {
   const user =
-    typeof post.user === "object"
+    post.user && typeof post.user === "object"
       ? post.user
-      : { _id: post.user, name: "User", username: "user", image: undefined };
+      : { _id: String(post.user || ""), name: "User", username: "user", image: undefined };
 
   const [likes, setLikes] = useState(post.likes?.length || 0);
   const [saving, setSaving] = useState(false);

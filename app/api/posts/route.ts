@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/mongoose";
 import Post from "@/models/Post";
 import User from "@/models/User";
 import { getMediaUrl } from "@/lib/s3";
+import mongoose from "mongoose";
 
 const PAGE_SIZE = 20;
 
@@ -25,31 +26,26 @@ export async function GET(request: Request) {
   const followingIds = (me?.following ?? []).map((id: any) => id.toString());
   const feedUserIds = [...followingIds, meId];
 
-  const query: any = { user: { $in: feedUserIds } };
-  if (cursor) {
-    query._id = { $lt: cursor };
+  // If user does not follow anyone, show discovery feed for seamless cold start
+  const isColdStart = followingIds.length === 0;
+  const query: any = isColdStart ? {} : { user: { $in: feedUserIds } };
+
+  if (cursor && mongoose.Types.ObjectId.isValid(cursor)) {
+    query._id = { $lt: new mongoose.Types.ObjectId(cursor) };
   }
 
-  let posts = await Post.find(query)
+  const posts = await Post.find(query)
     .sort({ createdAt: -1 })
     .limit(pageSize + 1)
     .populate("user", "name username image");
-
-  // Fallback: If user follows no one and has no posts, show recent public posts so the feed isn't a dead end
-  if (posts.length === 0 && !cursor) {
-    posts = await Post.find({})
-      .sort({ createdAt: -1 })
-      .limit(pageSize + 1)
-      .populate("user", "name username image");
-  }
 
   const hasMore = posts.length > pageSize;
   const data = hasMore ? posts.slice(0, pageSize) : posts;
   const nextCursor = hasMore ? data[data.length - 1]._id : null;
 
-  // Resolve media URLs
+  // Resolve media and author avatar URLs
   const resolvedPosts = data.map((post) => {
-    const postObj = post.toObject();
+    const postObj = post.toObject() as any;
     if (postObj.mediaKey) {
       if (postObj.mediaType === "video") {
         postObj.videoUrl = getMediaUrl(postObj.mediaKey);
@@ -59,6 +55,10 @@ export async function GET(request: Request) {
     } else {
       if (postObj.imageUrl) postObj.imageUrl = getMediaUrl(postObj.imageUrl);
       if (postObj.videoUrl) postObj.videoUrl = getMediaUrl(postObj.videoUrl);
+    }
+
+    if (postObj.user && typeof postObj.user === "object" && postObj.user.image) {
+      postObj.user.image = getMediaUrl(postObj.user.image);
     }
     return postObj;
   });
@@ -101,5 +101,10 @@ export async function POST(request: Request) {
   });
 
   await post.populate("user", "name username image");
-  return NextResponse.json(post, { status: 201 });
+  const postObj = post.toObject() as any;
+  if (postObj.user && typeof postObj.user === "object" && postObj.user.image) {
+    postObj.user.image = getMediaUrl(postObj.user.image);
+  }
+
+  return NextResponse.json(postObj, { status: 201 });
 }

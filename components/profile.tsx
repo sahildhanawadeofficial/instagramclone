@@ -39,6 +39,7 @@ export default function Profile({ user, username }: ProfileProps) {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [updating, setUpdating] = useState(false);
+  const [editError, setEditError] = useState("");
 
   // Follow list modal state
   const [listModalType, setListModalType] = useState<"followers" | "following" | null>(null);
@@ -158,13 +159,16 @@ export default function Profile({ user, username }: ProfileProps) {
         }),
       });
 
-      if (res.ok) {
-        const updated = await res.json();
-        setProfileData((prev: any) => ({ ...prev, ...updated }));
-        setEditOpen(false);
+      const updated = await res.json();
+      if (!res.ok) {
+        throw new Error(updated.error || "Failed to update profile");
       }
-    } catch (err) {
-      console.error(err);
+
+      setProfileData((prev: any) => ({ ...prev, ...updated }));
+      setEditOpen(false);
+      setEditError("");
+    } catch (err: any) {
+      setEditError(err.message || "Failed to update profile");
     } finally {
       setUpdating(false);
     }
@@ -358,6 +362,12 @@ export default function Profile({ user, username }: ProfileProps) {
                 <FiX size={20} />
               </button>
             </div>
+
+            {editError && (
+              <p className="text-xs text-destructive bg-destructive/10 p-2.5 rounded-lg mb-4">
+                {editError}
+              </p>
+            )}
 
             <form onSubmit={handleSaveProfile} className="space-y-4">
               {/* Avatar picker */}

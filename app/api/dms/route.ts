@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongoose";
 import { DMConversation, DMMessage } from "@/models/DM";
 import User from "@/models/User";
+import mongoose from "mongoose";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -28,6 +29,9 @@ export async function POST(request: Request) {
   const senderId = (session.user as any).id;
   if (!recipientId) {
     return NextResponse.json({ error: "recipientId is required" }, { status: 400 });
+  }
+  if (!mongoose.Types.ObjectId.isValid(recipientId)) {
+    return NextResponse.json({ error: "Invalid recipientId" }, { status: 400 });
   }
   if (recipientId === senderId) {
     return NextResponse.json({ error: "You cannot message yourself" }, { status: 400 });

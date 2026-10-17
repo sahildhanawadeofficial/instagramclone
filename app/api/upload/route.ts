@@ -2,7 +2,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { s3Client, bucketName, getMediaUrl } from "@/lib/s3";
+import { getS3Client, getBucketName, getMediaUrl } from "@/lib/s3";
 
 export const runtime = "nodejs";
 
@@ -30,6 +30,8 @@ export async function POST(request: Request) {
   if (file.size > MAX_BYTES) {
     return NextResponse.json({ error: "The file is too large. Maximum size is 100 MB." }, { status: 413 });
   }
+
+  const bucketName = getBucketName();
   if (!bucketName) {
     return NextResponse.json({ error: "S3 is not configured. Add the AWS values from .env.example." }, { status: 503 });
   }
@@ -39,7 +41,8 @@ export async function POST(request: Request) {
   const key = `uploads/${userId}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${safeName}`;
 
   try {
-    await s3Client.send(
+    const client = getS3Client();
+    await client.send(
       new PutObjectCommand({
         Bucket: bucketName,
         Key: key,

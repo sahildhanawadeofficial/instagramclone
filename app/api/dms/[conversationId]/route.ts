@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongoose";
 import { DMConversation, DMMessage } from "@/models/DM";
+import mongoose from "mongoose";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ conversationId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -10,6 +11,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ con
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { conversationId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
   const userId = (session.user as any).id;
   await dbConnect();
   const conversation = await DMConversation.findOne({
@@ -22,6 +27,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ con
   const messages = await DMMessage.find({ conversationId })
     .sort({ createdAt: 1 })
     .populate("sender", "name username image");
+
   // Mark as read
   await DMMessage.updateMany(
     { conversationId, readBy: { $ne: userId } },
@@ -36,6 +42,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ con
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { conversationId } = await params;
+  if (!mongoose.Types.ObjectId.isValid(conversationId)) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
   const userId = (session.user as any).id;
   const { text } = await request.json();
   if (!text || !text.trim()) {
