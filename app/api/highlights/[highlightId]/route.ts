@@ -5,6 +5,16 @@ import { dbConnect } from "@/lib/mongoose";
 import Highlight from "@/models/Highlight";
 import Story from "@/models/Story";
 import mongoose from "mongoose";
+import { getMediaUrl } from "@/lib/s3";
+
+function serializeHighlight(highlight: any) {
+  const result = highlight.toObject ? highlight.toObject() : highlight;
+  result.stories = (result.stories || []).map((story: any) => ({
+    ...story,
+    mediaUrl: getMediaUrl(story.mediaKey || story.mediaUrl),
+  }));
+  return result;
+}
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ highlightId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -25,7 +35,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ hi
   }
   if (body.coverUrl !== undefined) highlight.coverUrl = body.coverUrl;
   await highlight.save();
-  return NextResponse.json(await highlight.populate("stories"));
+  const populated = await highlight.populate("stories");
+  return NextResponse.json(serializeHighlight(populated));
 }
 export async function DELETE(_request: Request, { params }: { params: Promise<{ highlightId: string }> }) {
   const session = await getServerSession(authOptions);

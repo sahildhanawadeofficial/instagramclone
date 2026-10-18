@@ -166,18 +166,41 @@ export default function StoriesTray({ currentUser, onStoryReply }: StoriesTrayPr
     setStoryUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", storyFile);
+      let mediaKey: string;
+      try {
+        const presignRes = await fetch("/api/upload/presign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: storyFile.name,
+            contentType: storyFile.type,
+          }),
+        });
+        if (!presignRes.ok) throw new Error("Could not prepare upload");
 
-      const upRes = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!upRes.ok) throw new Error("Upload failed");
-      const upData = await upRes.json();
+        const { uploadUrl, key } = await presignRes.json();
+        const uploadRes = await fetch(uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": storyFile.type },
+          body: storyFile,
+        });
+        if (!uploadRes.ok) throw new Error("Direct upload failed");
+        mediaKey = key;
+      } catch (directUploadError) {
+        console.warn("Direct story upload failed, using server fallback", directUploadError);
+        const formData = new FormData();
+        formData.append("file", storyFile);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+        const uploadData = await uploadRes.json().catch(() => ({}));
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+        mediaKey = uploadData.key;
+      }
 
       const storyRes = await fetch("/api/stories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mediaKey: upData.key,
+          mediaKey,
           mediaType: storyFile.type.startsWith("video") ? "video" : "image",
           caption: storyCaption.trim(),
         }),
@@ -233,25 +256,41 @@ export default function StoriesTray({ currentUser, onStoryReply }: StoriesTrayPr
 
   const currentGroup = activeGroupIndex !== null ? storyGroups[activeGroupIndex] : null;
   const currentStory = currentGroup ? currentGroup.stories[activeStoryIndex] : null;
+  const ownStoryGroupIndex = storyGroups.findIndex(
+    (group) => group.user._id === currentUser?.id
+  );
+  const hasOwnStory = ownStoryGroupIndex !== -1;
 
   return (
     <>
       {/* Stories Horizontal Tray */}
-      <div className="stories-tray flex items-center gap-4 overflow-x-auto py-3 px-4 mb-6 border border-border bg-card rounded-2xl shadow-sm scrollbar-none">
+      <div className="stories-tray flex h-[112px] max-h-[112px] min-h-[112px] items-center gap-4 overflow-x-auto overflow-y-hidden py-3 px-4 mb-6 border border-border bg-card rounded-2xl shadow-sm scrollbar-none">
         {/* Your Story item */}
-        <div className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group">
+        <div
+          className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+          onClick={() => {
+            if (hasOwnStory) {
+              setActiveGroupIndex(ownStoryGroupIndex);
+              setActiveStoryIndex(0);
+              setProgress(0);
+            } else {
+              setAddStoryOpen(true);
+            }
+          }}
+        >
           <div
             className="relative p-0.5 rounded-full hover:scale-105 transition-transform"
-            onClick={() => setAddStoryOpen(true)}
           >
             <Avatar
               name={currentUser?.name}
               src={currentUser?.image}
               className="w-16 h-16 rounded-full object-cover border-2 border-background"
             />
-            <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center border-2 border-background shadow-md">
-              <FiPlus size={13} strokeWidth={3} />
-            </div>
+            {!hasOwnStory && (
+              <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center border-2 border-background shadow-md">
+                <FiPlus size={13} strokeWidth={3} />
+              </div>
+            )}
           </div>
           <span className="text-[11px] font-medium text-foreground truncate max-w-[72px]">
             Your story
@@ -285,7 +324,7 @@ export default function StoriesTray({ currentUser, onStoryReply }: StoriesTrayPr
                   <Avatar
                     name={group.user.name}
                     src={group.user.image}
-                    className="w-15 h-15 rounded-full object-cover"
+                    className="w-16 h-16 rounded-full object-cover"
                   />
                 </div>
               </div>
@@ -476,7 +515,16 @@ export default function StoriesTray({ currentUser, onStoryReply }: StoriesTrayPr
             {storyPreview ? (
               <div className="space-y-4">
                 <div className="relative aspect-[9/16] max-h-80 w-full mx-auto rounded-xl overflow-hidden bg-black flex items-center justify-center">
-                  <img src={storyPreview} alt="Preview" className="w-full h-full object-cover" />
+                  {storyFile?.type.startsWith("video") ? (
+                    <video
+                      src={storyPreview}
+                      controls
+                      playsInline
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <img src={storyPreview} alt="Preview" className="w-full h-full object-cover" />
+                  )}
                   <button
                     onClick={() => {
                       setStoryFile(null);
@@ -517,14 +565,14 @@ export default function StoriesTray({ currentUser, onStoryReply }: StoriesTrayPr
                 <div className="p-4 rounded-full bg-accent group-hover:bg-primary/10 transition-colors mb-3">
                   <FiUpload size={32} className="text-primary" />
                 </div>
-                <p className="font-semibold text-sm mb-1">Select a photo for your story</p>
-                <span className="text-xs text-muted-foreground mb-4">JPG, PNG, WEBP</span>
+                <p className="font-semibold text-sm mb-1">Select media for your story</p>
+                <span className="text-xs text-muted-foreground mb-4">JPG, PNG, WEBP, MP4, WEBM</span>
                 <span className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold">
                   Choose Photo
                 </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) {

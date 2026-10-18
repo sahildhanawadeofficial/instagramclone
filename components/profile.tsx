@@ -14,6 +14,7 @@ import {
   FiSlash,
   FiVolumeX,
   FiFlag,
+  FiUpload,
 } from "react-icons/fi";
 import { useCallback, useEffect, useState, useRef } from "react";
 import Link from "next/link";
@@ -76,7 +77,8 @@ export default function Profile({ user, username, onMessageUser }: ProfileProps)
   // Highlight modal & viewer state
   const [createHighlightOpen, setCreateHighlightOpen] = useState(false);
   const [newHighlightName, setNewHighlightName] = useState("");
-  const [newHighlightCover, setNewHighlightCover] = useState("");
+  const [newHighlightFile, setNewHighlightFile] = useState<File | null>(null);
+  const [newHighlightPreview, setNewHighlightPreview] = useState("");
   const [creatingHighlight, setCreatingHighlight] = useState(false);
   const [activeHighlight, setActiveHighlight] = useState<Highlight | null>(null);
   const [activeStoryIdx, setActiveStoryIdx] = useState(0);
@@ -174,6 +176,12 @@ export default function Profile({ user, username, onMessageUser }: ProfileProps)
   // Highlight progression timer
   useEffect(() => {
     if (!activeHighlight || !activeHighlight.stories || activeHighlight.stories.length === 0) {
+      if (highlightTimerRef.current) clearInterval(highlightTimerRef.current);
+      setHighlightProgress(0);
+      return;
+    }
+
+    if (activeHighlight.stories[activeStoryIdx]?.mediaType === "video") {
       if (highlightTimerRef.current) clearInterval(highlightTimerRef.current);
       setHighlightProgress(0);
       return;
@@ -279,20 +287,77 @@ export default function Profile({ user, username, onMessageUser }: ProfileProps)
     if (!newHighlightName.trim()) return;
     setCreatingHighlight(true);
     try {
+      let mediaKey: string | undefined;
+      let coverUrl: string | undefined;
+
+      if (newHighlightFile) {
+        try {
+          const presignRes = await fetch("/api/upload/presign", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fileName: newHighlightFile.name,
+              contentType: newHighlightFile.type,
+            }),
+          });
+          if (!presignRes.ok) throw new Error("Could not prepare highlight upload");
+
+          const presignData = await presignRes.json();
+          const uploadRes = await fetch(presignData.uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": newHighlightFile.type },
+            body: newHighlightFile,
+          });
+          if (!uploadRes.ok) throw new Error("Direct highlight upload failed");
+          mediaKey = presignData.key;
+          coverUrl = presignData.publicUrl;
+        } catch (directUploadError) {
+          console.warn("Direct highlight upload failed, using server fallback", directUploadError);
+          const formData = new FormData();
+          formData.append("file", newHighlightFile);
+          const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
+          const uploadData = await uploadRes.json().catch(() => ({}));
+          if (!uploadRes.ok) throw new Error(uploadData.error || "Highlight upload failed");
+          mediaKey = uploadData.key;
+          coverUrl = uploadData.publicUrl;
+        }
+      }
+
+      let storyIds: string[] = [];
+      if (mediaKey) {
+        const storyRes = await fetch("/api/stories", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mediaKey,
+            mediaType: newHighlightFile?.type.startsWith("video") ? "video" : "image",
+            caption: "",
+          }),
+        });
+        const storyData = await storyRes.json().catch(() => ({}));
+        if (!storyRes.ok) throw new Error(storyData.error || "Could not add highlight media");
+        storyIds = [storyData._id];
+      }
+
       const res = await fetch("/api/highlights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newHighlightName.trim(),
-          coverUrl: newHighlightCover.trim() || undefined,
+          coverUrl,
+          storyIds,
         }),
       });
       if (res.ok) {
         setCreateHighlightOpen(false);
         setNewHighlightName("");
-        setNewHighlightCover("");
+        setNewHighlightFile(null);
+        setNewHighlightPreview("");
         showToast("Highlight created!");
         if (profileData?._id) fetchHighlights(profileData._id);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Could not create highlight");
       }
     } catch {
       showToast("Could not create highlight");
@@ -801,15 +866,54 @@ export default function Profile({ user, username, onMessageUser }: ProfileProps)
 
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">
-                  Cover Photo URL (optional)
+                  Add photo or video (optional)
                 </label>
-                <input
-                  type="url"
-                  value={newHighlightCover}
-                  onChange={(e) => setNewHighlightCover(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full border border-border rounded-xl px-3.5 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                {newHighlightPreview ? (
+                  <div className="relative h-40 rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                    {newHighlightFile?.type.startsWith("video") ? (
+                      <video
+                        src={newHighlightPreview}
+                        controls
+                        playsInline
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <img
+                        src={newHighlightPreview}
+                        alt="Highlight preview"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        URL.revokeObjectURL(newHighlightPreview);
+                        setNewHighlightFile(null);
+                        setNewHighlightPreview("");
+                      }}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded-full hover:bg-black/80"
+                      aria-label="Remove highlight media"
+                    >
+                      <FiX size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center py-6 border-2 border-dashed border-border rounded-xl hover:border-primary cursor-pointer transition-colors">
+                    <FiUpload size={24} className="text-primary mb-2" />
+                    <span className="text-xs text-muted-foreground">Choose photo or video</span>
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setNewHighlightFile(file);
+                        setNewHighlightPreview(URL.createObjectURL(file));
+                      }}
+                    />
+                  </label>
+                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
@@ -892,8 +996,18 @@ export default function Profile({ user, username, onMessageUser }: ProfileProps)
                 <video
                   src={activeHighlight.stories[activeStoryIdx].mediaUrl}
                   autoPlay
+                  muted
                   playsInline
-                  className="w-full h-full object-cover"
+                  onEnded={() => {
+                    if (activeStoryIdx < activeHighlight.stories.length - 1) {
+                      setActiveStoryIdx((i) => i + 1);
+                      setHighlightProgress(0);
+                    } else {
+                      setActiveHighlight(null);
+                      setActiveStoryIdx(0);
+                    }
+                  }}
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <img
