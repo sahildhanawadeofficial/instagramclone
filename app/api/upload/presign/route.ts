@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { createPresignedUploadUrl } from "@/lib/s3";
+import { presignInputSchema } from "@/lib/media-validation";
 
 export const runtime = "nodejs";
 
@@ -22,15 +23,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
-    const { fileName, contentType } = await request.json();
-
-    if (!fileName || !contentType) {
-      return NextResponse.json({ error: "fileName and contentType are required." }, { status: 400 });
-    }
-
-    if (!ALLOWED_MIME.includes(contentType)) {
-      return NextResponse.json({ error: "Unsupported media format." }, { status: 400 });
-    }
+    const parsed = presignInputSchema.safeParse(await request.json());
+    if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Invalid upload data" }, { status: 400 });
+    const { fileName, contentType } = parsed.data;
 
     const safeName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "-");
     const userId = (session.user as any).id || "user";

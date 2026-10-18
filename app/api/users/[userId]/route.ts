@@ -6,6 +6,7 @@ import User from "@/models/User";
 import Post from "@/models/Post";
 import mongoose from "mongoose";
 import { getMediaUrl } from "@/lib/s3";
+import FollowRequest from "@/models/FollowRequest";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -29,6 +30,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
   const isSelf = meId === userId;
   const me = await User.findById(meId).select("following");
   const isFollowing = me?.following.some((id: any) => id.toString() === userId) ?? false;
+  const followRequested =
+    !isSelf &&
+    Boolean(
+      await FollowRequest.exists({
+        requester: meId,
+        recipient: userId,
+        status: "pending",
+      })
+    );
 
   let posts: any[] = [];
   if (!user.isPrivate || isFollowing || isSelf) {
@@ -58,6 +68,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
     ...userObj,
     posts,
     isFollowing,
+    followRequested,
     isSelf,
   });
 }

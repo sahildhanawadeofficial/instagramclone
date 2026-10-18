@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/mongoose";
 import Notification from "@/models/Notification";
+import "@/models/DM";
+import "@/models/Share";
+import "@/models/Story";
 import { getMediaUrl } from "@/lib/s3";
 
 export async function GET() {
@@ -17,7 +20,10 @@ export async function GET() {
     .limit(50)
     .populate("sender", "name username image")
     .populate("post", "imageUrl videoUrl mediaType caption mediaKey")
-    .populate("comment", "text");
+    .populate("comment", "text")
+    .populate("story", "mediaKey mediaUrl mediaType caption")
+    .populate("conversation", "participants")
+    .populate("share", "post caption");
 
   const resolved = notifications.map((n) => {
     const obj = n.toObject() as any;
@@ -27,6 +33,9 @@ export async function GET() {
       } else if (obj.post.imageUrl) {
         obj.post.imageUrl = getMediaUrl(obj.post.imageUrl);
       }
+    }
+    if (obj.story && typeof obj.story === "object") {
+      obj.story.mediaUrl = getMediaUrl(obj.story.mediaKey || obj.story.mediaUrl);
     }
     return obj;
   });

@@ -6,12 +6,16 @@ export interface IUser extends Document {
   username: string;
   password?: string;
   image?: string;
+  imageKey?: string;
   bio?: string;
   googleId?: string;
   isPrivate: boolean;
   followers: mongoose.Types.ObjectId[];
   following: mongoose.Types.ObjectId[];
   bookmarks: mongoose.Types.ObjectId[];
+  closeFriends: mongoose.Types.ObjectId[];
+  blockedUsers: mongoose.Types.ObjectId[];
+  mutedUsers: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,12 +27,16 @@ const UserSchema = new Schema<IUser>(
     username: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, select: false },
     image: { type: String },
+    imageKey: { type: String, maxlength: 512 },
     bio: { type: String, maxlength: 160, default: "" },
     googleId: { type: String },
     isPrivate: { type: Boolean, default: false },
     followers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: Schema.Types.ObjectId, ref: "User" }],
     bookmarks: [{ type: Schema.Types.ObjectId, ref: "Post" }],
+    closeFriends: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    blockedUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    mutedUsers: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -59,6 +59,7 @@ type Comment = {
   user: { _id: string; name: string; username: string; image?: string };
   text: string;
   parentId?: string | null;
+  likes?: string[];
   createdAt: string;
 };
 
@@ -83,6 +84,9 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reposted, setReposted] = useState(false);
+  const [repostCount, setRepostCount] = useState((post as any).reposts?.length || 0);
+  const [archiving, setArchiving] = useState(false);
 
   const lastTapRef = useRef<number>(0);
   const isOwnPost = currentUserId && user._id === currentUserId;
@@ -136,6 +140,59 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     setMenuOpen(false);
+  };
+
+  const toggleRepost = async () => {
+    try {
+      const res = await fetch(`/api/posts/${post._id}/repost`, { method: "POST" });
+      if (!res.ok) throw new Error("Repost failed");
+      const data = await res.json();
+      setReposted(Boolean(data.reposted));
+      setRepostCount(typeof data.reposts === "number" ? data.reposts : repostCount);
+      setMenuOpen(false);
+    } catch {
+      setMenuOpen(false);
+    }
+  };
+
+  const archivePost = async () => {
+    if (!isOwnPost || archiving) return;
+    setArchiving(true);
+    try {
+      const res = await fetch("/api/archive", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post._id }),
+      });
+      if (!res.ok) throw new Error("Archive failed");
+      onDelete?.(post._id);
+      setMenuOpen(false);
+    } catch {
+      setArchiving(false);
+    }
+  };
+
+  const toggleCommentLike = async (commentId: string) => {
+    if (!currentUserId) return;
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, { method: "POST" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment._id === commentId
+            ? {
+                ...comment,
+                likes: data.liked
+                  ? [...(comment.likes || []), currentUserId]
+                  : (comment.likes || []).filter((id) => id !== currentUserId),
+              }
+            : comment
+        )
+      );
+    } catch {
+      // Keep the current comment state if the request fails.
+    }
   };
 
   const deletePost = async () => {
@@ -247,6 +304,12 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
               >
                 {copied ? "Link copied!" : "Copy link"}
               </button>
+              <button
+                onClick={toggleRepost}
+                className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent/60"
+              >
+                {reposted ? "Undo repost" : "Repost"}
+              </button>
               {isOwnPost && (
                 <button
                   onClick={() => {
@@ -257,6 +320,15 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
                   className="w-full text-left px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 transition-colors border-t border-border mt-1"
                 >
                   <FiTrash2 size={15} /> Delete post
+                </button>
+              )}
+              {isOwnPost && (
+                <button
+                  onClick={archivePost}
+                  disabled={archiving}
+                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent/60 border-t border-border mt-1"
+                >
+                  {archiving ? "Archiving…" : "Archive post"}
                 </button>
               )}
             </div>
@@ -331,6 +403,16 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
             onClick={handleCopyLink}
           >
             <FiSend size={24} strokeWidth={2} />
+          </button>
+          <button
+            className={`action-button p-1.5 rounded-full hover:bg-accent/70 transition-colors ${
+              reposted ? "text-primary" : "text-foreground"
+            }`}
+            onClick={toggleRepost}
+            aria-label="Repost"
+            title={`${repostCount} reposts`}
+          >
+            <span className="text-lg leading-none">↻</span>
           </button>
         </div>
         <button
@@ -447,6 +529,14 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
                           >
                             Reply
                           </button>
+                          <button
+                            onClick={() => toggleCommentLike(c._id)}
+                            className={`font-medium hover:text-foreground ${
+                              c.likes?.includes(currentUserId || "") ? "text-red-500" : ""
+                            }`}
+                          >
+                            {c.likes?.length || 0} like{(c.likes?.length || 0) === 1 ? "" : "s"}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -468,6 +558,14 @@ export default function Post({ post, currentUserId, onDelete }: PostProps) {
                           <span className="text-xs text-muted-foreground mt-0.5 block">
                             {TIME_AGO(reply.createdAt)}
                           </span>
+                          <button
+                            onClick={() => toggleCommentLike(reply._id)}
+                            className={`text-xs hover:text-foreground ${
+                              reply.likes?.includes(currentUserId || "") ? "text-red-500" : "text-muted-foreground"
+                            }`}
+                          >
+                            {reply.likes?.length || 0} like{(reply.likes?.length || 0) === 1 ? "" : "s"}
+                          </button>
                         </div>
                       </div>
                     ))}

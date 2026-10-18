@@ -73,6 +73,11 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      fontFamily: {
+        pacifico: ["'Grand Hotel'", "'Pacifico'", "cursive"],
+        brand: ["'Grand Hotel'", "cursive"],
+        sans: ["'Plus Jakarta Sans'", "Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+      },
     },
   },
   plugins: [],

@@ -43,7 +43,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   }
 
   const userId = (session.user as any).id;
-  const { text, parentId } = await request.json();
+  const { text, parentId, mentionedUserIds = [] } = await request.json();
   if (!text || !text.trim()) {
     return NextResponse.json({ error: "Comment text is required" }, { status: 400 });
   }
@@ -62,12 +62,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
+  if (!Array.isArray(mentionedUserIds) || mentionedUserIds.some((id: unknown) => typeof id !== "string" || !mongoose.Types.ObjectId.isValid(id))) {
+    return NextResponse.json({ error: "Invalid mentioned users" }, { status: 400 });
+  }
+  const mentionedUsers = mentionedUserIds.length
+    ? await User.find({ _id: { $in: mentionedUserIds } }).select("_id")
+    : [];
 
   const comment = await Comment.create({
     post: postId,
     user: user._id,
     text: text.trim(),
     parentId: parentId || null,
+    mentions: mentionedUsers.map((u) => u._id),
   });
   await comment.populate("user", "name username image");
 
@@ -80,6 +87,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ pos
       post: postId,
       comment: comment._id,
     });
+  }
+  for (const mentioned of mentionedUsers) {
+    if (mentioned._id.toString() !== userId) {
+      await Notification.create({ recipient: mentioned._id, sender: userId, type: "mention", post: postId, comment: comment._id });
+    }
   }
 
   // If this was a reply to another comment, also notify the comment author

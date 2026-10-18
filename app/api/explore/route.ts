@@ -10,20 +10,25 @@ export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   const meId = session ? (session.user as any).id : null;
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get("limit") || "30", 10);
+  const requestedLimit = Number.parseInt(searchParams.get("limit") || "30", 10);
+  const limit = Number.isFinite(requestedLimit)
+    ? Math.min(Math.max(requestedLimit, 1), 50)
+    : 30;
 
   await dbConnect();
 
   // Find private users that current user is NOT following
   let excludedUserIds: any[] = [];
   if (meId) {
-    const me = await User.findById(meId).select("following");
+    const me = await User.findById(meId).select("following blockedUsers mutedUsers");
     const followingIds = me?.following || [];
+    const hiddenIds = [...(me?.blockedUsers || []), ...(me?.mutedUsers || [])];
     const privateUsers = await User.find({
       isPrivate: true,
-      _id: { $nin: [...followingIds, meId] },
+      _id: { $nin: [...followingIds, meId, ...hiddenIds] },
     }).select("_id");
     excludedUserIds = privateUsers.map((u) => u._id);
+    excludedUserIds.push(...(me?.blockedUsers || []), ...(me?.mutedUsers || []));
   } else {
     const privateUsers = await User.find({ isPrivate: true }).select("_id");
     excludedUserIds = privateUsers.map((u) => u._id);

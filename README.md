@@ -26,8 +26,9 @@ A production-quality, modern Instagram clone built with Next.js App Router, Mong
   - Follow / unfollow with dynamic count updates and followers/following modal
   - Profile customization (name, bio, avatar upload)
 - **Notifications & Messages**:
-  - Notifications for likes, comments, and new followers
-  - Direct message conversations and real-time chat interface
+  - Notifications for likes, comments, mentions, tags, shares, reposts, stories, and direct messages
+  - Direct message conversations with message requests, read receipts, and polling-based live refresh
+  - Comment likes, post reposts/shares, story replies/reactions, post archiving, and story highlights APIs
 - **UI & Aesthetics**:
   - Sleek dark and light mode toggle
   - Responsive layout for desktop and mobile devices

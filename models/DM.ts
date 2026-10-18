@@ -6,6 +6,7 @@ export interface IDMMessage extends Document {
   text: string;
   imageUrl?: string;
   readBy: mongoose.Types.ObjectId[];
+  mentions: mongoose.Types.ObjectId[];
   createdAt: Date;
 }
 
@@ -13,6 +14,8 @@ export interface IDMConversation extends Document {
   participants: mongoose.Types.ObjectId[];
   lastMessage?: mongoose.Types.ObjectId;
   updatedAt: Date;
+  requestStatus: "none" | "pending" | "accepted" | "declined";
+  requestedBy?: mongoose.Types.ObjectId;
 }
 
 const DMMessageSchema = new Schema<IDMMessage>({
@@ -21,6 +24,7 @@ const DMMessageSchema = new Schema<IDMMessage>({
   text: { type: String, required: true, trim: true },
   imageUrl: { type: String },
   readBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  mentions: [{ type: Schema.Types.ObjectId, ref: "User" }],
 }, { timestamps: true });
 
 DMMessageSchema.index({ conversationId: 1, createdAt: -1 });
@@ -28,6 +32,8 @@ DMMessageSchema.index({ conversationId: 1, createdAt: -1 });
 const DMConversationSchema = new Schema<IDMConversation>({
   participants: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
   lastMessage: { type: Schema.Types.ObjectId, ref: "DMMessage" },
+  requestStatus: { type: String, enum: ["none", "pending", "accepted", "declined"], default: "none" },
+  requestedBy: { type: Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true });
 
 DMConversationSchema.index({ participants: 1 });

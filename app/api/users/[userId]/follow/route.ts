@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/mongoose";
 import User from "@/models/User";
 import mongoose, { Types } from "mongoose";
 import Notification from "@/models/Notification";
+import FollowRequest from "@/models/FollowRequest";
 
 export async function POST(_request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const session = await getServerSession(authOptions);
@@ -36,6 +37,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ us
   const targetObjectId = new Types.ObjectId(userId);
   const meObjectId = new Types.ObjectId(meId);
   const alreadyFollowing = me.following.some((id) => id.toString() === userId);
+  const existingRequest = await FollowRequest.findOne({
+    requester: meObjectId,
+    recipient: targetObjectId,
+  });
   const meFollowing = me.following as any;
   const targetFollowers = target.followers as any;
 
@@ -48,6 +53,40 @@ export async function POST(_request: Request, { params }: { params: Promise<{ us
       sender: meObjectId,
       type: "follow",
     });
+    await FollowRequest.deleteOne({ requester: meObjectId, recipient: targetObjectId });
+    await me.save();
+    await target.save();
+    return NextResponse.json({ following: false, requested: false });
+  }
+
+  if (target.isPrivate) {
+    if (existingRequest?.status === "pending") {
+      await existingRequest.deleteOne();
+      await Notification.findOneAndDelete({
+        recipient: targetObjectId,
+        sender: meObjectId,
+        type: "follow_request",
+      });
+      return NextResponse.json({ following: false, requested: false });
+    }
+
+    const request = await FollowRequest.findOneAndUpdate(
+      { requester: meObjectId, recipient: targetObjectId },
+      { requester: meObjectId, recipient: targetObjectId, status: "pending" },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+    await Notification.findOneAndUpdate(
+      { recipient: targetObjectId, sender: meObjectId, type: "follow_request" },
+      {
+        recipient: targetObjectId,
+        sender: meObjectId,
+        type: "follow_request",
+        followRequest: request._id,
+        read: false,
+      },
+      { upsert: true, setDefaultsOnInsert: true }
+    );
+    return NextResponse.json({ following: false, requested: true });
   } else {
     meFollowing.addToSet(targetObjectId);
     targetFollowers.addToSet(meObjectId);
@@ -61,5 +100,5 @@ export async function POST(_request: Request, { params }: { params: Promise<{ us
 
   await me.save();
   await target.save();
-  return NextResponse.json({ following: !alreadyFollowing });
+  return NextResponse.json({ following: true, requested: false });
 }

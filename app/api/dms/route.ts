@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/mongoose";
 import { DMConversation, DMMessage } from "@/models/DM";
 import User from "@/models/User";
 import mongoose from "mongoose";
+import Notification from "@/models/Notification";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -48,16 +49,31 @@ export async function POST(request: Request) {
   if (!conversation) {
     conversation = await DMConversation.create({
       participants: [senderId, recipientId],
+      requestStatus: "pending",
+      requestedBy: senderId,
     });
   }
-  const message = await DMMessage.create({
-    conversationId: conversation._id,
-    sender: senderId,
-    text: text || "",
-  });
-  conversation.lastMessage = message._id;
-  await conversation.save();
+
+  if (text && text.trim()) {
+    const message = await DMMessage.create({
+      conversationId: conversation._id,
+      sender: senderId,
+      text: text.trim(),
+    });
+    conversation.lastMessage = message._id;
+    await conversation.save();
+    if (recipientId !== senderId) {
+      await Notification.findOneAndUpdate(
+        { recipient: recipientId, sender: senderId, type: conversation.requestStatus === "pending" ? "message_request" : "message", conversation: conversation._id },
+        { recipient: recipientId, sender: senderId, type: conversation.requestStatus === "pending" ? "message_request" : "message", conversation: conversation._id, read: false },
+        { upsert: true, setDefaultsOnInsert: true }
+      );
+    }
+  }
+
   await conversation.populate("participants", "name username image");
-  await conversation.populate("lastMessage");
+  if (conversation.lastMessage) {
+    await conversation.populate("lastMessage");
+  }
   return NextResponse.json(conversation, { status: 201 });
 }

@@ -5,6 +5,7 @@ import { dbConnect } from "@/lib/mongoose";
 import User from "@/models/User";
 import Post from "@/models/Post";
 import { getMediaUrl } from "@/lib/s3";
+import FollowRequest from "@/models/FollowRequest";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ username: string }> }) {
   const session = await getServerSession(authOptions);
@@ -24,9 +25,17 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
   // Check if viewing own profile or following
   const isSelf = meId ? user._id.toString() === meId : false;
   let isFollowing = false;
+  let followRequested = false;
   if (meId && !isSelf) {
     const me = await User.findById(meId).select("following");
     isFollowing = me?.following.some((id: any) => id.toString() === user._id.toString()) ?? false;
+    followRequested = Boolean(
+      await FollowRequest.exists({
+        requester: meId,
+        recipient: user._id,
+        status: "pending",
+      })
+    );
   }
 
   // If private account and not following and not self, do not return posts
@@ -58,6 +67,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ use
     ...userObj,
     posts,
     isFollowing,
+    followRequested,
     isSelf,
   });
 }
